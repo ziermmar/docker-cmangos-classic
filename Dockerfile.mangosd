@@ -46,6 +46,5 @@ USER mangos:mangos
 # Run cmangosd
 WORKDIR /opt/cmangos-classic/bin
 VOLUME /opt/cmangos-classic/etc
-EXPOSE 3724/tcp
 EXPOSE 8085/tcp
 ENTRYPOINT ["/opt/cmangos-classic/bin/mangosd"]

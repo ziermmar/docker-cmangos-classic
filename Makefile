@@ -1,20 +1,31 @@
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := build
 
 .PHONY: build
 ## Builds multi-arch images
-build:
-	docker buildx build --platform=linux/arm64/v8 -t ziermmar/cmangos-classic:dev .
-	docker buildx build --platform=linux/amd64 -t ziermmar/cmangos-classic:dev .
+build: build-mangosd build-realmd
+
+.PHONY: build-mangosd
+## Builds multi-arch images
+build-mangosd:
+	docker buildx build --push \
+	--platform=linux/arm64,linux/amd64 \
+	--tag ziermmar/cmangos-classic:dev \
+	--file Dockerfile.mangosd \
+	--target runner .
+
+.PHONY: build-realmd
+## Builds multi-arch images
+build-realmd:
+	docker buildx build --push \
+	--platform=linux/arm64,linux/amd64 \
+	--tag ziermmar/cmangos-classic-realmd:dev \
+	--file Dockerfile.realmd \
+	--target runner .
 
 .PHONY: login
 ## dockerhub login
 login:
 	docker login
-
-.PHONY: push
-## Pushes images to dockerhub
-push: build
-	docker push ziermmar/cmangos-classic:dev
 
 ################################################################################
 
