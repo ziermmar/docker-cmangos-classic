@@ -5,12 +5,13 @@ RUN apt-get update
 RUN apt-get install -y \
  grep build-essential gcc g++ automake libboost-all-dev \
  git-core autoconf make patch cmake libmariadb-dev libmariadb-dev-compat \
- mariadb-server libtool libssl-dev binutils libc6 libbz2-dev subversion
+ mariadb-server libtool libssl-dev binutils libc6 libbz2-dev subversion wget
 
 # Acquire source code
-RUN git clone --depth 1 https://github.com/cmangos/mangos-classic.git /src/cmangos-classic
-WORKDIR /src/cmangos-classic
-# RUN git clone --depth 1 https://github.com/cmangos/classic-db.git
+ADD https://github.com/cmangos/mangos-classic/archive/refs/tags/latest.tar.gz /src/cmangos-classic.tar.gz
+RUN tar xfz /src/cmangos-classic.tar.gz -C /src \
+ && rm -f /src/cmangos-classic.tar.gz \
+ && mv /src/mangos-classic-latest /src/cmangos-classic
 
 # Build cmangos-realmd
 WORKDIR /src/cmangos-classic/build
@@ -34,8 +35,11 @@ RUN cmake /src/cmangos-classic \
  -DBUILD_SCRIPTDEV=OFF
 
 # Install cmangos
-RUN make -j$(nproc) install
+RUN make install
 RUN cp /opt/cmangos-classic/etc/realmd.conf.dist /opt/cmangos-classic/etc/realmd.conf
+
+
+
 
 FROM debian AS runner
 

@@ -5,27 +5,41 @@ RUN apt-get update
 RUN apt-get install -y \
  grep build-essential gcc g++ automake libboost-all-dev \
  git-core autoconf make patch cmake libmariadb-dev libmariadb-dev-compat \
- mariadb-server libtool libssl-dev binutils libc6 libbz2-dev subversion
+ mariadb-server libtool libssl-dev binutils libc6 libbz2-dev subversion wget
 
 # Acquire source code
-WORKDIR /src/cmangos-classic
-RUN git clone --depth 1 https://github.com/cmangos/mangos-classic.git mangos
-WORKDIR /src/cmangos-classic/mangos
-RUN git clone --depth 1 https://github.com/cmangos/classic-db.git
+ADD https://github.com/cmangos/mangos-classic/archive/refs/tags/latest.tar.gz /src/cmangos-classic.tar.gz
+RUN tar xfz /src/cmangos-classic.tar.gz -C /src \
+ && rm -f /src/cmangos-classic.tar.gz \
+ && mv /src/mangos-classic-latest /src/cmangos-classic
 
-# Build cmangos
-WORKDIR /src/cmangos-classic/mangos/build
-RUN cmake /src/cmangos-classic/mangos \
- -DCMAKE_INSTALL_PREFIX=/opt/cmangos-classic -DPCH=1 -DDEBUG=0 \
- -DBUILD_PLAYERBOTS=ON -DBUILD_AHBOT=ON -DBUILD_METRICS=ON
+# Build cmangos-mangosd
+WORKDIR /src/cmangos-classic/build
+RUN cmake /src/cmangos-classic \
+ -DCMAKE_INSTALL_PREFIX=/opt/cmangos-classic \
+ -DPCH=ON \
+ -DDEBUG=OFF \
+ -DWARNINGS=OFF \
+ -DPOSTGRESQL=OFF \
+ -DBUILD_GAME_SERVER=ON \
+ -DBUILD_LOGIN_SERVER=OFF \
+ -DBUILD_EXTRACTORS=OFF \
+ -DBUILD_PLAYERBOTS=ON \
+ -DBUILD_AHBOT=ON \
+ -DBUILD_METRICS=ON \
+ -DBUILD_RECASTDEMOMOD=OFF \
+ -DBUILD_GIT_ID=OFF \
+ -DBUILD_DOCS=OFF \
+ -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
+ -DBUILD_DEPRECATED_PLAYERBOT=OFF \
+ -DBUILD_SCRIPTDEV=ON
 
 # Install cmangos
-RUN make -j$(nproc) install
+RUN make install
 RUN cp /opt/cmangos-classic/etc/ahbot.conf.dist /opt/cmangos-classic/etc/ahbot.conf \
  && cp /opt/cmangos-classic/etc/aiplayerbot.conf.dist /opt/cmangos-classic/etc/aiplayerbot.conf \
  && cp /opt/cmangos-classic/etc/anticheat.conf.dist /opt/cmangos-classic/etc/anticheat.conf \
- && cp /opt/cmangos-classic/etc/mangosd.conf.dist /opt/cmangos-classic/etc/mangosd.conf \
- && cp /opt/cmangos-classic/etc/realmd.conf.dist /opt/cmangos-classic/etc/realmd.conf
+ && cp /opt/cmangos-classic/etc/mangosd.conf.dist /opt/cmangos-classic/etc/mangosd.conf
 
 FROM debian AS runner
 

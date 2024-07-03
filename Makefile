@@ -4,12 +4,26 @@
 ## Builds multi-arch images
 build: build-mangosd build-realmd
 
+.PHONY: debug
+debug: build-debug run-debug
+
+.PHONY: run-debug
+## Creates interactive debug container
+run-debug:
+	docker run -it --rm ziermmar/cmangos-classic-debug:dev
+
+.PHONY: build-debug
+## Builds multi-arch images
+build-debug:
+	docker build --tag ziermmar/cmangos-classic-debug:dev \
+	--file Dockerfile.debug .
+
 .PHONY: build-mangosd
 ## Builds multi-arch images
 build-mangosd:
 	docker buildx build --push \
 	--platform=linux/arm64,linux/amd64 \
-	--tag ziermmar/cmangos-classic:dev \
+	--tag ziermmar/cmangos-classic-mangosd:dev \
 	--file Dockerfile.mangosd \
 	--target runner .
 
