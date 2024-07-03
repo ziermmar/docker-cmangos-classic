@@ -35,7 +35,7 @@ RUN cmake /src/cmangos-classic \
  -DBUILD_SCRIPTDEV=OFF
 
 # Install cmangos
-RUN make install
+RUN make -j4 install
 RUN cp /opt/cmangos-classic/etc/realmd.conf.dist /opt/cmangos-classic/etc/realmd.conf
 
 

@@ -35,7 +35,7 @@ RUN cmake /src/cmangos-classic \
  -DBUILD_SCRIPTDEV=ON
 
 # Install cmangos
-RUN make install
+RUN make -j4 install
 RUN cp /opt/cmangos-classic/etc/ahbot.conf.dist /opt/cmangos-classic/etc/ahbot.conf \
  && cp /opt/cmangos-classic/etc/aiplayerbot.conf.dist /opt/cmangos-classic/etc/aiplayerbot.conf \
  && cp /opt/cmangos-classic/etc/anticheat.conf.dist /opt/cmangos-classic/etc/anticheat.conf \
