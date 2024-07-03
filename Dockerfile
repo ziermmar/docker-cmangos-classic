@@ -21,11 +21,11 @@ RUN cmake /src/cmangos-classic/mangos \
 
 # Install cmangos
 RUN make -j$(nproc) install
-RUN cp /opt/cmangos-classic/ahbot.conf.dist /opt/cmangos-classic/ahbot.conf && \
- && cp /opt/cmangos-classic/aiplayerbot.conf.dist /opt/cmangos-classic/aiplayerbot.conf \
- && cp /opt/cmangos-classic/anticheat.conf.dist /opt/cmangos-classic/anticheat.conf \
- && cp /opt/cmangos-classic/mangosd.conf.dist /opt/cmangos-classic/mangosd.conf \
- && cp /opt/cmangos-classic/realmd.conf.dist /opt/cmangos-classic/realmd.conf
+RUN cp /opt/cmangos-classic/etc/ahbot.conf.dist /opt/cmangos-classic/etc/ahbot.conf \
+ && cp /opt/cmangos-classic/etc/aiplayerbot.conf.dist /opt/cmangos-classic/etc/aiplayerbot.conf \
+ && cp /opt/cmangos-classic/etc/anticheat.conf.dist /opt/cmangos-classic/etc/anticheat.conf \
+ && cp /opt/cmangos-classic/etc/mangosd.conf.dist /opt/cmangos-classic/etc/mangosd.conf \
+ && cp /opt/cmangos-classic/etc/realmd.conf.dist /opt/cmangos-classic/etc/realmd.conf
 
 FROM debian AS runner
 
@@ -37,8 +37,15 @@ RUN apt-get update && apt-get install -y \
  libssl3 libmariadb3 \
  && rm -rf /var/lib/apt/lists/*
 
+# Make container non-root
+RUN groupadd -g 10001 mangos \
+ && useradd -u 10000 -g mangos mangos \
+ && chown -R mangos:mangos /opt/cmangos-classic
+USER mangos:mangos
+
 # Run cmangosd
-WORKDIR /opt/cmangos-classic
+WORKDIR /opt/cmangos-classic/bin
+VOLUME /opt/cmangos-classic/etc
 EXPOSE 3724/tcp
 EXPOSE 8085/tcp
 ENTRYPOINT ["/opt/cmangos-classic/bin/mangosd"]
