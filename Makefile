@@ -37,7 +37,7 @@ build-mangosd:
 	docker buildx build --push \
 	--platform=linux/arm64,linux/amd64 \
 	--tag ziermmar/cmangos-classic-mangosd:dev \
-	--file Dockerfile.mangosd \
+	--file Dockerfile.cmangos \
 	--target runner .
 
 .PHONY: build-realmd
