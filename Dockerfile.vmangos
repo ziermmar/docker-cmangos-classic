@@ -18,7 +18,7 @@ RUN tar xfz vmangos-latest.tar.gz --strip-components=1 \
 WORKDIR /src/build
 RUN cmake /opt/vmangos/src -DDEBUG=0 -DSUPPORTED_CLIENT_BUILD=5875 \
  -DUSE_EXTRACTORS=0 -DCMAKE_INSTALL_PREFIX=/opt/vmangos \
-  && make -j8 install \
+  && make -j4 install \
   && strip -s /opt/vmangos/bin/mangosd \
   && cp /opt/vmangos/etc/mangosd.conf.dist /opt/vmangos/etc/mangosd.conf \
   && cp /opt/vmangos/etc/realmd.conf.dist /opt/vmangos/etc/realmd.conf
