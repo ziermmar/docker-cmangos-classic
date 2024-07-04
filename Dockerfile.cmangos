@@ -1,0 +1,71 @@
+FROM debian AS builder
+
+# Install dependencies
+RUN apt-get update
+RUN apt-get install -y \
+ grep build-essential gcc g++ automake libboost-all-dev \
+ git-core autoconf make patch cmake libmariadb-dev libmariadb-dev-compat \
+ mariadb-server libtool libssl-dev binutils libc6 libbz2-dev subversion wget
+
+# Acquire source code
+ADD https://github.com/cmangos/mangos-classic/archive/refs/tags/latest.tar.gz /src/cmangos-classic.tar.gz
+RUN tar xfz /src/cmangos-classic.tar.gz -C /src \
+ && rm -f /src/cmangos-classic.tar.gz \
+ && mv /src/mangos-classic-latest /src/cmangos-classic
+
+# Acquire db
+ADD https://github.com/cmangos/classic-db/archive/refs/tags/latest.tar.gz /src/cmangos-classic-db.tar.gz
+RUN tar xfz /src/cmangos-classic-db.tar.gz -C /src \
+ && rm -f /src/cmangos-classic-db.tar.gz \
+ && mv /src/classic-db-latest /src/cmangos-classic-db
+
+# Build cmangos-mangosd
+WORKDIR /src/cmangos-classic/build
+RUN cmake /src/cmangos-classic \
+ -DCMAKE_INSTALL_PREFIX=/opt/cmangos-classic \
+ -DPCH=ON \
+ -DDEBUG=OFF \
+ -DWARNINGS=OFF \
+ -DPOSTGRESQL=OFF \
+ -DBUILD_GAME_SERVER=ON \
+ -DBUILD_LOGIN_SERVER=ON \
+ -DBUILD_EXTRACTORS=OFF \
+ -DBUILD_PLAYERBOTS=ON \
+ -DBUILD_AHBOT=ON \
+ -DBUILD_METRICS=ON \
+ -DBUILD_RECASTDEMOMOD=OFF \
+ -DBUILD_GIT_ID=OFF \
+ -DBUILD_DOCS=OFF \
+ -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF \
+ -DBUILD_DEPRECATED_PLAYERBOT=OFF \
+ -DBUILD_SCRIPTDEV=ON
+
+# Install cmangos
+RUN make -j4 install
+RUN cp /opt/cmangos-classic/etc/ahbot.conf.dist /opt/cmangos-classic/etc/ahbot.conf \
+ && cp /opt/cmangos-classic/etc/aiplayerbot.conf.dist /opt/cmangos-classic/etc/aiplayerbot.conf \
+ && cp /opt/cmangos-classic/etc/anticheat.conf.dist /opt/cmangos-classic/etc/anticheat.conf \
+ && cp /opt/cmangos-classic/etc/mangosd.conf.dist /opt/cmangos-classic/etc/mangosd.conf
+
+FROM debian AS runner
+
+# Copy cmangos from build container
+COPY --from=builder /opt/cmangos-classic /opt/cmangos-classic
+COPY --from=builder /src/cmangos-classic-db /opt/cmangos-classic-db
+
+# Acquire runtime dependencies
+RUN apt-get update && apt-get install -y \
+ libssl3 libmariadb3 mariadb-client \
+ && rm -rf /var/lib/apt/lists/*
+
+# Make container non-root
+RUN groupadd -g 10001 mangos \
+ && useradd -u 10000 -g mangos mangos \
+ && chown -R mangos:mangos /opt/cmangos-classic /opt/cmangos-classic-db
+USER mangos:mangos
+
+# Run cmangosd
+WORKDIR /opt/cmangos-classic/bin
+VOLUME /opt/cmangos-classic/etc
+EXPOSE 8085/tcp
+ENTRYPOINT ["/opt/cmangos-classic/bin/mangosd"]
