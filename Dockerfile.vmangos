@@ -29,7 +29,7 @@ COPY --from=builder /opt/vmangos /opt/vmangos
 
 # Acquire runtime dependencies
 RUN apt-get update && apt-get install -y \
- libssl3 libmariadb3 mariadb-client \
+ libssl3 libmariadb3 mariadb-client libace-7.0.8 \
  && rm -rf /var/lib/apt/lists/*
 
 # Make container non-root

@@ -4,11 +4,8 @@
 ## Builds multi-arch images
 build: build-mangosd build-realmd
 
-.PHONY: debug
-debug: build-debug run-debug
-
-.PHONY: vmangos-debug
-vmangos-debug:
+.PHONY: debug-vmangos
+debug-vmangos:
 	docker build --tag ziermmar/vmangos:dev --file Dockerfile.vmangos .
 	docker run -it --rm ziermmar/vmangos:dev
 
@@ -20,16 +17,12 @@ build-vmangos:
 	--file Dockerfile.vmangos \
 	--target runner .
 
-.PHONY: run-debug
-## Creates interactive debug container
-run-debug:
-	docker run -it --rm ziermmar/cmangos-classic-debug:dev
-
-.PHONY: build-debug
+.PHONY: debug-cmangos
 ## Builds multi-arch images
-build-debug:
+debug-cmangos:
 	docker build --tag ziermmar/cmangos-classic-debug:dev \
 	--file Dockerfile.debug .
+	docker run -it --rm ziermmar/cmangos-classic-debug:dev
 
 .PHONY: build-mangosd
 ## Builds multi-arch images
