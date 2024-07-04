@@ -7,6 +7,19 @@ build: build-mangosd build-realmd
 .PHONY: debug
 debug: build-debug run-debug
 
+.PHONY: vmangos-debug
+vmangos-debug:
+	docker build --tag ziermmar/vmangos:dev --file Dockerfile.vmangos .
+	docker run -it --rm ziermmar/vmangos:dev
+
+.PHONY: build-vmangos
+build-vmangos:
+	docker buildx build --push \
+	--platform=linux/arm64,linux/amd64 \
+	--tag ziermmar/vmangos:dev \
+	--file Dockerfile.vmangos \
+	--target runner .
+
 .PHONY: run-debug
 ## Creates interactive debug container
 run-debug:

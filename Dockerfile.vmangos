@@ -1,0 +1,48 @@
+FROM debian AS builder
+
+# Install dependencies
+RUN apt-get update
+RUN apt-get install -y \
+ g++ libace-dev libtbb-dev cmake libmariadb-dev openssl libssl-dev \
+ build-essential checkinstall zlib1g-dev git
+
+# Acquire source code
+WORKDIR /opt/vmangos/src
+ADD https://github.com/vmangos/core/archive/refs/tags/latest.tar.gz vmangos-latest.tar.gz
+
+# Extract source code
+RUN tar xfz vmangos-latest.tar.gz --strip-components=1 \
+ && rm -f vmangos-latest.tar.gz
+
+# Compile source code and strip debug symbols
+WORKDIR /src/build
+RUN cmake /opt/vmangos/src -DDEBUG=0 -DSUPPORTED_CLIENT_BUILD=5875 \
+ -DUSE_EXTRACTORS=0 -DCMAKE_INSTALL_PREFIX=/opt/vmangos \
+  && make -j8 install \
+  && strip -s /opt/vmangos/bin/mangosd \
+  && cp /opt/vmangos/etc/mangosd.conf.dist /opt/vmangos/etc/mangosd.conf \
+  && cp /opt/vmangos/etc/realmd.conf.dist /opt/vmangos/etc/realmd.conf
+
+
+FROM debian AS runner
+COPY --from=builder /opt/vmangos /opt/vmangos
+
+# Acquire runtime dependencies
+RUN apt-get update && apt-get install -y \
+ libssl3 libmariadb3 mariadb-client \
+ && rm -rf /var/lib/apt/lists/*
+
+# Make container non-root
+RUN groupadd -g 10001 mangos \
+ && useradd -u 10000 -g mangos mangos \
+ && chown -R mangos:mangos /opt/vmangos
+USER mangos:mangos
+
+# Run cmangosd
+WORKDIR /opt/vmangos
+VOLUME /opt/vmangos/etc
+VOLUME /opt/vmangos/share
+EXPOSE 8085/tcp
+
+ENTRYPOINT ["/opt/vmangos/bin/mangosd"]
+CMD ["-c", "/opt/vmangos/etc/mangosd.conf"]
