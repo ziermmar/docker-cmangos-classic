@@ -1,0 +1,8 @@
+services:
+  debug:
+    image: ziermmar/cmangos-classic-debug:dev
+    volumes:
+    - config:/opt/cmangos-classic/etc
+
+volumes:
+  config:
