@@ -6,12 +6,15 @@ This repository contains a Dockerfile for building and running a Mangos server.
 
 ## Components
 
-This image contains
+These images contain the following components:
 
-* mangosd
+* cmangos
   * ahbot
   * playerbot
-* realmd
+  * realmd
+* vmangos
+  * mangosd
+  * realmd
 
 ## Architecture
 
