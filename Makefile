@@ -2,7 +2,7 @@
 
 .PHONY: build
 ## Builds multi-arch images
-build: build-mangosd build-realmd
+build: build-mangos build-vmangos
 
 .PHONY: debug-vmangos
 debug-vmangos:
@@ -24,9 +24,9 @@ debug-cmangos:
 	--file Dockerfile.debug .
 	docker run -it --rm ziermmar/cmangos-classic-debug:dev
 
-.PHONY: build-mangosd
+.PHONY: build-mangos
 ## Builds multi-arch images
-build-mangosd:
+build-mangos:
 	docker buildx build --push \
 	--platform=linux/arm64,linux/amd64 \
 	--tag ziermmar/cmangos-classic-mangosd:dev \
